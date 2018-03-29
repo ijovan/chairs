@@ -1,18 +1,19 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.4;
+
 
 contract Chairs {
 
     enum State {INITIALIZATION, ACTIVE, FINISHED}
 
-    State state = State.INITIALIZATION;
+    State public state = State.INITIALIZATION;
 
     address[] chairs;
     address[] players;
-    address winner;
+    address public winner;
 
-    uint bet;
-    uint reward;
-    uint roundNumber = 1;
+    uint public bet;
+    uint public reward;
+    uint public roundNumber = 1;
 
     function Chairs(uint numberOfPlayers, uint _bet) public {
         require(numberOfPlayers > 1 && _bet >= 0);
@@ -42,14 +43,24 @@ contract Chairs {
 
         require(alive(id));
 
-        uint index = find_chair();
+        uint index = findChair();
 
         chairs[index] = id;
 
         if (chairs.length == 1) {
-            finish_game();
+            finishGame();
         } else if (index == chairs.length - 1) {
-            new_round();
+            newRound();
+        }
+    }
+
+    function freeSlots() public view returns (uint) {
+        require(state != State.FINISHED);
+
+        if (state == State.INITIALIZATION) {
+            return chairs.length + 1 - players.length;
+        } else if (state == State.ACTIVE) {
+            return chairs.length - findChair();
         }
     }
 
@@ -61,7 +72,7 @@ contract Chairs {
         return false;
     }
 
-    function find_chair() private view returns (uint) {
+    function findChair() private view returns (uint) {
         for (uint index = 0; index < chairs.length; index++)
             if (!alive(chairs[index]))
                 break;
@@ -69,7 +80,7 @@ contract Chairs {
         return index;
     }
 
-    function new_round() private {
+    function newRound() private {
         players = chairs;
 
         delete chairs;
@@ -78,7 +89,7 @@ contract Chairs {
         roundNumber++;
     }
 
-    function finish_game() private {
+    function finishGame() private {
         state = State.FINISHED;
         winner = chairs[0];
         winner.transfer(reward);
