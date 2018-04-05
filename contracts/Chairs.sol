@@ -41,7 +41,7 @@ contract Chairs {
 
         address id = msg.sender;
 
-        require(alive(id));
+        require(alive(id) && !seated(id));
 
         uint index = findChair();
 
@@ -70,6 +70,14 @@ contract Chairs {
                 return true;
 
         return false;
+    }
+
+    function seated(address id) private view returns (bool) {
+      for (uint index = 0; index < chairs.length; index++)
+          if (chairs[index] == id)
+            return true;
+
+      return false;
     }
 
     function findChair() private view returns (uint) {
